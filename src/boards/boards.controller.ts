@@ -7,10 +7,13 @@ import {
   Post,
   HttpException,
   HttpStatus,
+  Patch,
+  Put,
 } from '@nestjs/common';
 import { BoardsService } from './boards.service';
-import { Board } from './boards.model';
+import { Board, BoardStatus } from './boards.model';
 import { CreateBoardDto } from './dto/create-board.dto';
+import { UpdateBoardDto } from './dto/update-board.dto';
 
 @Controller('boards')
 export class BoardsController {
@@ -65,5 +68,21 @@ export class BoardsController {
   @Delete('/:id')
   deleteBoard(@Param('id') id: string): void {
     this.boardsService.deleteBoard(id);
+  }
+
+  @Patch('/:id/status')
+  updateBoardStatus(
+    @Param('id') id: string,
+    @Body('status') status: BoardStatus,
+  ) {
+    return this.boardsService.updateBoardStatus(id, status);
+  }
+
+  @Put('/:id')
+  updateBoard(
+    @Param('id') id: string,
+    @Body() updateBoardDto: UpdateBoardDto,
+  ): Board {
+    return this.boardsService.updateBoard(id, updateBoardDto);
   }
 }
