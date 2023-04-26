@@ -9,25 +9,36 @@ import {
   HttpStatus,
   Patch,
   Put,
+  NotFoundException,
 } from '@nestjs/common';
 import { BoardsService } from './boards.service';
-import { Board, BoardStatus } from './boards.model';
+import { BoardType, BoardStatus } from './boards.model';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
+import { Board } from './board.entity';
 
 @Controller('boards')
 export class BoardsController {
   constructor(private boardsService: BoardsService) {}
 
   @Get('/')
-  getAllBoard(): Board[] {
-    return this.boardsService.getAllBoards();
+  async getAllBoard(): Promise<BoardType[]> {
+    const boards = await this.boardsService.getAllBoards();
+    return boards.map((board) => ({
+      id: board.id,
+      title: board.title,
+      description: board.description,
+      status: board.status,
+    }));
   }
 
   @Post()
-  async createBoard(@Body() createBoardDto: CreateBoardDto): Promise<Board> {
+  async createBoard(
+    @Body() createBoardDto: CreateBoardDto,
+  ): Promise<BoardType> {
     try {
-      const createdBoard = this.boardsService.createBoard(createBoardDto);
+      const createdBoard = await this.boardsService.createBoard(createBoardDto);
+      console.log(createdBoard);
       return createdBoard;
     } catch (err) {
       if (err instanceof HttpException) {
@@ -42,13 +53,18 @@ export class BoardsController {
   }
 
   @Get('/:id')
-  async getBoardById(@Param('id') id: string): Promise<Board> {
+  async getBoardById(@Param('id') id: string): Promise<BoardType> {
     try {
       const board = await this.boardsService.getBoardById(id);
       if (!board) {
-        throw new HttpException('Board not found', HttpStatus.NOT_FOUND);
+        throw new NotFoundException({ message: 'Board not found', id });
       }
-      return board;
+      return {
+        id: board.id.toString(),
+        title: board.title,
+        description: board.description,
+        status: board.status,
+      };
     } catch (err) {
       if (err instanceof HttpException) {
         throw err;
@@ -79,10 +95,10 @@ export class BoardsController {
   }
 
   @Put('/:id')
-  updateBoard(
+  async updateBoard(
     @Param('id') id: string,
     @Body() updateBoardDto: UpdateBoardDto,
-  ): Board {
+  ): Promise<BoardType> {
     return this.boardsService.updateBoard(id, updateBoardDto);
   }
 }
