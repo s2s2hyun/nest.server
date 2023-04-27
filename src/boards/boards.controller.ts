@@ -13,8 +13,8 @@ import {
 } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { BoardType, BoardStatus } from './boards.model';
-import { CreateBoardDto } from './dto/create-board.dto';
-import { UpdateBoardDto } from './dto/update-board.dto';
+import { CreateBoardDto } from './dtos/create-board.dto';
+import { UpdateBoardDto } from './dtos/update-board.dto';
 import { Board } from './board.entity';
 
 @Controller('boards')
