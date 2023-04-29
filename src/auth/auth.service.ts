@@ -9,12 +9,13 @@ import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { AuthCredentialsDto } from './dtos/auth-credential.dto';
 import { JwtService } from '@nestjs/jwt';
+
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
-    private jwtService: JwtService,
-    private userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService, // Add this line
   ) {}
 
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<string> {
@@ -42,16 +43,27 @@ export class AuthService {
   async logIn(
     authCredentialsDto: AuthCredentialsDto,
   ): Promise<{ access_token: string }> {
+    console.log('JWT_SECRET:', process.env.JWT_SECRET);
     const { username, password } = authCredentialsDto;
     const user = await this.userRepository.findOne({ where: { username } });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const payload = { username: user.username };
-      const access_token = this.jwtService.sign(payload);
+    if (user) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      console.log('Password match:', isMatch);
 
-      return { access_token }; //, refresh_token };
+      if (isMatch) {
+        const payload = { username: user.username };
+        const access_token = this.jwtService.sign(payload);
+        console.log('Access token:', access_token);
+
+        return { access_token };
+      } else {
+        console.log('Login failed: password mismatch'); // Add this line
+        throw new UnauthorizedException('Invalid credentials');
+      }
     } else {
-      throw new UnauthorizedException('login failed');
+      console.log('Login failed: user not found'); // Add this line
+      throw new UnauthorizedException('Invalid credentials');
     }
   }
 }

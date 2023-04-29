@@ -25,12 +25,14 @@ export class AuthController {
   @Post('/login')
   async logIn(
     @Body() authCredentialsDto: AuthCredentialsDto,
-  ): Promise<{ message: string }> {
+  ): Promise<{ access_token: string }> {
     try {
-      const username = await this.authService.logIn(authCredentialsDto);
-      return { message: 'login success' };
+      const token = await this.authService.logIn(authCredentialsDto);
+      console.log('Token:', token);
+      return token;
     } catch (error) {
-      console.log(`login failed for username: ${authCredentialsDto.username}`);
+      console.log(`Login failed for username: ${authCredentialsDto.username}`);
+      console.log('Error:', error); // Add this line to log the error
       throw new UnauthorizedException('login failed');
     }
   }
