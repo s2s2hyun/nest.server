@@ -5,9 +5,13 @@ import {
   UsePipes,
   ValidationPipe,
   UnauthorizedException,
+  Get,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dtos/auth-credential.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,15 +29,21 @@ export class AuthController {
   @Post('/login')
   async logIn(
     @Body() authCredentialsDto: AuthCredentialsDto,
-  ): Promise<{ access_token: string }> {
+  ): Promise<{ access_token: string; refresh_token: string }> {
     try {
-      const token = await this.authService.logIn(authCredentialsDto);
-      console.log('Token:', token);
-      return token;
+      const tokens = await this.authService.logIn(authCredentialsDto);
+      console.log('Token:', tokens);
+      return tokens;
     } catch (error) {
       console.log(`Login failed for username: ${authCredentialsDto.username}`);
       console.log('Error:', error); // Add this line to log the error
       throw new UnauthorizedException('login failed');
     }
+  }
+
+  @Get('/profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Req() req) {
+    return req.user;
   }
 }

@@ -8,7 +8,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { ProtectedController } from './protected.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
+import { JwtAuthGuard } from './jwt-auth.guard'; // 추가
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
@@ -18,6 +18,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
         signOptions: { expiresIn: '1h' },
+        refreshToken: {
+          secret: configService.get('JWT_REFRESH_SECRET'),
+          expiresIn: '3d',
+          httpOnly: true,
+        },
       }),
       inject: [ConfigService],
     }),
@@ -26,7 +31,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [AuthController, ProtectedController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard],
   exports: [AuthService],
 })
 export class AuthModule {}

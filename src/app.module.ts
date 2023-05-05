@@ -10,12 +10,12 @@ import { ProtectedController } from './auth/protected.controller';
   imports: [
     BoardsModule,
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'Qwe123123!',
-      database: 'boards',
+      type: process.env.DB_TYPE as any,
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT, 10),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
       entities: [Board, User],
       synchronize: true,
       logging: true, // enable logging

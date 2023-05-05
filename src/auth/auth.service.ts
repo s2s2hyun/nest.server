@@ -42,27 +42,26 @@ export class AuthService {
 
   async logIn(
     authCredentialsDto: AuthCredentialsDto,
-  ): Promise<{ access_token: string }> {
-    console.log('JWT_SECRET:', process.env.JWT_SECRET);
+  ): Promise<{ access_token: string; refresh_token: string }> {
     const { username, password } = authCredentialsDto;
     const user = await this.userRepository.findOne({ where: { username } });
 
     if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
-      console.log('Password match:', isMatch);
 
       if (isMatch) {
         const payload = { username: user.username };
         const access_token = this.jwtService.sign(payload);
-        console.log('Access token:', access_token);
 
-        return { access_token };
+        // 새로운 페이로드를 만들거나 기존 페이로드에 정보를 추가할 수 있습니다.
+        const refreshPayload = { ...payload, refresh: true };
+        const refresh_token = this.jwtService.sign(refreshPayload); // Use jwtService instead of jwtRefreshService
+
+        return { access_token, refresh_token };
       } else {
-        console.log('Login failed: password mismatch'); // Add this line
         throw new UnauthorizedException('Invalid credentials');
       }
     } else {
-      console.log('Login failed: user not found'); // Add this line
       throw new UnauthorizedException('Invalid credentials');
     }
   }
