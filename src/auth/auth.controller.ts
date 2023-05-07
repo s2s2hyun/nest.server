@@ -8,10 +8,12 @@ import {
   Get,
   UseGuards,
   Req,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dtos/auth-credential.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -29,14 +31,20 @@ export class AuthController {
   @Post('/login')
   async logIn(
     @Body() authCredentialsDto: AuthCredentialsDto,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+    @Res({ passthrough: true }) response: Response, // 추가
+  ): Promise<{ message: string }> {
+    // 반환 타입 변경
     try {
-      const tokens = await this.authService.logIn(authCredentialsDto);
-      console.log('Token:', tokens);
-      return tokens;
+      const { access_token, refresh_token } = await this.authService.logIn(
+        authCredentialsDto,
+      );
+
+      // 쿠키 설정 추가
+      response.cookie('access_token', access_token, { httpOnly: true });
+      response.cookie('refresh_token', refresh_token, { httpOnly: true });
+
+      return { message: 'Logged in successfully' }; // 반환 값 변경
     } catch (error) {
-      console.log(`Login failed for username: ${authCredentialsDto.username}`);
-      console.log('Error:', error); // Add this line to log the error
       throw new UnauthorizedException('login failed');
     }
   }
