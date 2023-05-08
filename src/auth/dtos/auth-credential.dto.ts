@@ -10,4 +10,8 @@ export class AuthCredentialsDto {
   @MinLength(6) // Set the minimum length for the username
   @MaxLength(20)
   password: string;
+
+  @IsString()
+  @MaxLength(30)
+  email: string;
 }
