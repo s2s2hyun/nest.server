@@ -9,8 +9,11 @@ import { JwtStrategy } from './jwt.strategy';
 import { ProtectedController } from './protected.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './jwt-auth.guard'; // 추가
+import { HttpModule } from '@nestjs/axios'; // 수정
 @Module({
   imports: [
+    ConfigModule, // 추가
+    HttpModule, // 추가
     TypeOrmModule.forFeature([User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({

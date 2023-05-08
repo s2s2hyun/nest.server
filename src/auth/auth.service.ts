@@ -9,13 +9,16 @@ import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { AuthCredentialsDto } from './dtos/auth-credential.dto';
 import { JwtService } from '@nestjs/jwt';
-
+import { HttpService } from '@nestjs/axios'; // 추가
+import { ConfigService } from '@nestjs/config'; // 추가
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService, // Add this line
+    private readonly httpService: HttpService, // 추가
+    private readonly configService: ConfigService, // 추가
   ) {}
 
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<string> {
@@ -65,5 +68,51 @@ export class AuthService {
     } else {
       throw new UnauthorizedException('Invalid credentials');
     }
+  }
+
+  // authService에 kakaoLogin 메소드 추가
+  async kakaoLogin(
+    code: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+    const kakaoTokenUrl = `https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id=${this.configService.get(
+      'KAKAO_REST_API_KEY',
+    )}&redirect_uri=${this.configService.get(
+      'KAKAO_REDIRECT_URI',
+    )}&code=${code}&client_secret=${this.configService.get(
+      'KAKAO_CLIENT_SECRET',
+    )}`;
+
+    const tokenRes = await this.httpService.post(kakaoTokenUrl).toPromise();
+    const accessToken = tokenRes.data.access_token;
+
+    const kakaoUserInfoUrl = 'https://kapi.kakao.com/v2/user/me';
+    const userInfoRes = await this.httpService
+      .get(kakaoUserInfoUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      .toPromise();
+
+    const kakaoId = userInfoRes.data.id;
+    const email = userInfoRes.data.kakao_account.email;
+
+    let user = await this.userRepository.findOne({
+      where: { kakaoId: String(kakaoId) },
+    });
+
+    if (!user) {
+      user = this.userRepository.create({
+        kakaoId: String(kakaoId),
+        email,
+      });
+      await this.userRepository.save(user);
+    }
+
+    const payload = { username: user.username };
+    const access_token = this.jwtService.sign(payload);
+
+    const refreshPayload = { ...payload, refresh: true };
+    const refresh_token = this.jwtService.sign(refreshPayload);
+
+    return { access_token, refresh_token };
   }
 }

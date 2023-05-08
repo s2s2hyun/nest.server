@@ -14,6 +14,7 @@ async function bootstrap() {
     origin: 'http://localhost:3000', // 클라이언트 애플리케이션의 도메인
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // 허용할 HTTP 메소드들
     allowedHeaders: ['Content-Type', 'Authorization'], // 허용할 헤더들
+    credentials: true,
   });
 
   await app.listen(process.env.PORT);
