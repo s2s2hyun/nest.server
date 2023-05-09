@@ -25,7 +25,7 @@ export class BoardsService {
       description: board.description,
       status: board.status,
     }));
-    console.log(result); // Add this line to debug
+
     return Promise.resolve(result);
   }
 

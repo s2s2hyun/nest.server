@@ -60,13 +60,13 @@ export class AuthController {
     return { message: 'Logged out successfully' };
   }
 
-  @Get('/oauth/callback/kakao')
+  @Get('/callback/kakao')
   async kakaoCallback(
     @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<{ message: string }> {
+  ): Promise<void> {
     try {
-      const code = req.query.code as string; // 수정
+      const code = req.query.code as string;
       const { access_token, refresh_token } = await this.authService.kakaoLogin(
         code,
       );
@@ -75,10 +75,58 @@ export class AuthController {
       response.cookie('access_token', access_token, { httpOnly: true });
       response.cookie('refresh_token', refresh_token, { httpOnly: true });
 
-      return { message: 'Logged in with Kakao successfully' };
+      response.redirect('http://localhost:3000/');
     } catch (error) {
       throw new UnauthorizedException('Kakao login failed');
     }
+  }
+
+  @Get('/callback/naver')
+  async naverCallback(
+    @Req() req: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    try {
+      const code = req.query.code as string;
+      const { access_token, refresh_token } = await this.authService.naverLogin(
+        code,
+      );
+
+      // Set cookies
+      response.cookie('access_token', access_token, { httpOnly: true });
+      response.cookie('refresh_token', refresh_token, { httpOnly: true });
+
+      response.redirect('http://localhost:3000/');
+    } catch (error) {
+      throw new UnauthorizedException('Naver login failed');
+    }
+  }
+
+  @Get('/callback/google')
+  async googleCallback(
+    @Req() req: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    try {
+      const code = req.query.code as string;
+      const { access_token, refresh_token } =
+        await this.authService.googleLogin(code);
+
+      // Set cookies
+      response.cookie('access_token', access_token, { httpOnly: true });
+      response.cookie('refresh_token', refresh_token, { httpOnly: true });
+
+      response.redirect('http://localhost:3000/');
+    } catch (error) {
+      throw new UnauthorizedException('Google login failed');
+    }
+  }
+
+  @Get('/userInfo')
+  @UseGuards(JwtAuthGuard)
+  async getUserInfo(@Req() req): Promise<{ username: string; email: string }> {
+    const user = await this.authService.getUserInfo(req.user.username);
+    return { username: user.username, email: user.email };
   }
 
   @Get('/profile')

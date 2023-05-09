@@ -1,11 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
-
+import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   dotenv.config(); // Add this line to load .env file
   const app = await NestFactory.create(AppModule);
-
+  app.use(cookieParser());
   // // CORS 모든 설정 활성화
   // app.enableCors();
 

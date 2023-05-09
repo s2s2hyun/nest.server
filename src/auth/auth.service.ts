@@ -82,18 +82,47 @@ export class AuthService {
       'KAKAO_CLIENT_SECRET',
     )}`;
 
-    const tokenRes = await this.httpService.post(kakaoTokenUrl).toPromise();
-    const accessToken = tokenRes.data.access_token;
+    let tokenRes;
 
+    try {
+      tokenRes = await this.httpService.post(kakaoTokenUrl).toPromise();
+    } catch (error) {
+      console.error(
+        'Error fetching access token from Kakao API:',
+        error.message,
+      );
+      throw new UnauthorizedException(
+        'Error fetching access token from Kakao API: ' + error.message,
+      );
+    }
+
+    const accessToken = tokenRes.data.access_token;
     const kakaoUserInfoUrl = 'https://kapi.kakao.com/v2/user/me';
-    const userInfoRes = await this.httpService
-      .get(kakaoUserInfoUrl, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      .toPromise();
+
+    let userInfoRes;
+
+    try {
+      userInfoRes = await this.httpService
+        .get(kakaoUserInfoUrl, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        .toPromise();
+    } catch (error) {
+      console.error('Error fetching user info from Kakao API:', error.message);
+      throw new UnauthorizedException(
+        'Error fetching user info from Kakao API: ' + error.message,
+      );
+    }
 
     const kakaoId = userInfoRes.data.id;
-    const email = userInfoRes.data.kakao_account.email;
+    const kakaoAccount = userInfoRes.data.kakao_account;
+    const nickname =
+      kakaoAccount && kakaoAccount.profile
+        ? kakaoAccount.profile.nickname
+        : null;
+    const email =
+      kakaoAccount && kakaoAccount.email ? kakaoAccount.email : null;
+    const username = nickname ? `K_${nickname}` : `K_${kakaoId}`;
 
     let user = await this.userRepository.findOne({
       where: { kakaoId: String(kakaoId) },
@@ -103,6 +132,7 @@ export class AuthService {
       user = this.userRepository.create({
         kakaoId: String(kakaoId),
         email,
+        username,
       });
       await this.userRepository.save(user);
     }
@@ -114,5 +144,158 @@ export class AuthService {
     const refresh_token = this.jwtService.sign(refreshPayload);
 
     return { access_token, refresh_token };
+  }
+
+  async naverLogin(
+    code: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+    const naverTokenUrl = `https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=${this.configService.get(
+      'NAVER_CLIENT_ID',
+    )}&client_secret=${this.configService.get(
+      'NAVER_CLIENT_SECRET',
+    )}&redirect_uri=${encodeURIComponent(
+      this.configService.get('NAVER_REDIRECT_URI'),
+    )}&code=${code}`;
+
+    let tokenRes;
+
+    try {
+      tokenRes = await this.httpService.post(naverTokenUrl).toPromise();
+    } catch (error) {
+      console.error(
+        'Error fetching access token from Naver API:',
+        error.message,
+      );
+      throw new UnauthorizedException(
+        'Error fetching access token from Naver API: ' + error.message,
+      );
+    }
+
+    const accessToken = tokenRes.data.access_token;
+    const naverUserInfoUrl = 'https://openapi.naver.com/v1/nid/me';
+
+    let userInfoRes;
+
+    try {
+      userInfoRes = await this.httpService
+        .get(naverUserInfoUrl, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        .toPromise();
+    } catch (error) {
+      console.error('Error fetching user info from Naver API:', error.message);
+      throw new UnauthorizedException(
+        'Error fetching user info from Naver API: ' + error.message,
+      );
+    }
+
+    const naverId = userInfoRes.data.response.id;
+    const nickname = userInfoRes.data.response.nickname;
+    const email = userInfoRes.data.response.email;
+    const username = nickname ? `N_${nickname}` : `N_${naverId}`;
+
+    let user = await this.userRepository.findOne({
+      where: { naverId: String(naverId) },
+    });
+
+    if (!user) {
+      user = this.userRepository.create({
+        naverId: String(naverId),
+        email,
+        username,
+      });
+      await this.userRepository.save(user);
+    }
+
+    const payload = { username: user.username };
+    const access_token = this.jwtService.sign(payload);
+
+    const refreshPayload = { ...payload, refresh: true };
+    const refresh_token = this.jwtService.sign(refreshPayload);
+
+    return { access_token, refresh_token };
+  }
+
+  async googleLogin(
+    code: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+    const tokenUrl = 'https://oauth2.googleapis.com/token';
+    const headers = {
+      'content-type': 'application/x-www-form-urlencoded',
+    };
+
+    const params = new URLSearchParams({
+      code,
+      client_id: this.configService.get('GOOGLE_CLIENT_ID'),
+      client_secret: this.configService.get('GOOGLE_CLIENT_SECRET'),
+      redirect_uri: this.configService.get('GOOGLE_REDIRECT_URI'),
+      grant_type: 'authorization_code',
+    });
+
+    let tokenRes;
+
+    try {
+      tokenRes = await this.httpService
+        .post(tokenUrl, params.toString(), {
+          headers,
+        })
+        .toPromise();
+    } catch (error) {
+      console.error(
+        'Error fetching access token from Google API:',
+        error.message,
+      );
+      throw new UnauthorizedException(
+        'Error fetching access token from Google API: ' + error.message,
+      );
+    }
+
+    const accessToken = tokenRes.data.access_token;
+    const idToken = tokenRes.data.id_token;
+    const userInfoUrl = 'https://www.googleapis.com/oauth2/v3/userinfo';
+
+    let userInfoRes;
+
+    try {
+      userInfoRes = await this.httpService
+        .get(userInfoUrl, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        .toPromise();
+    } catch (error) {
+      console.error('Error fetching user info from Google API:', error.message);
+      throw new UnauthorizedException(
+        'Error fetching user info from Google API: ' + error.message,
+      );
+    }
+
+    const googleId = userInfoRes.data.sub;
+    const email = userInfoRes.data.email;
+    const username = `G_${email.split('@')[0]}`;
+
+    let user = await this.userRepository.findOne({
+      where: { googleId: String(googleId) },
+    });
+
+    if (!user) {
+      user = this.userRepository.create({
+        googleId: String(googleId),
+        email,
+        username,
+      });
+      await this.userRepository.save(user);
+    }
+
+    const payload = { username: user.username };
+    const access_token = this.jwtService.sign(payload);
+
+    const refreshPayload = { ...payload, refresh: true };
+    const refresh_token = this.jwtService.sign(refreshPayload);
+
+    return { access_token, refresh_token };
+  }
+
+  async getUserInfo(username: string): Promise<User> {
+    return this.userRepository.findOne({ where: { username } });
   }
 }
