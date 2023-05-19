@@ -5,6 +5,7 @@ import { Board } from './boards/board.entity';
 import { AuthModule } from './auth/auth.module';
 import { User } from './auth/user.entity';
 import { ProtectedController } from './auth/protected.controller';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ProtectedController } from './auth/protected.controller';
       driver: require('mysql2'),
     }),
     AuthModule,
+    EmailModule,
   ],
   controllers: [ProtectedController],
 })
