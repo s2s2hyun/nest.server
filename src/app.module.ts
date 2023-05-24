@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './auth/user.entity';
 import { ProtectedController } from './auth/protected.controller';
 import { EmailModule } from './email/email.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EmailModule } from './email/email.module';
     }),
     AuthModule,
     EmailModule,
+    MulterModule.register({ dest: 'uploads/' }), // Add this line
   ],
   controllers: [ProtectedController],
 })

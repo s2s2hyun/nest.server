@@ -22,6 +22,7 @@ import { v4 as uuid } from 'uuid';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
+import { diskStorage } from 'multer';
 
 @Controller('boards')
 export class BoardsController {
@@ -38,57 +39,15 @@ export class BoardsController {
     }));
   }
 
-  // @Post('/')
-  // async createBoard(
-  //   @Body() createBoardDto: CreateBoardDto,
-  // ): Promise<BoardType> {
-  //   try {
-  //     const createdBoard = await this.boardsService.createBoard(createBoardDto);
-  //     console.log(createdBoard);
-  //     return createdBoard;
-  //   } catch (err) {
-  //     if (err instanceof HttpException) {
-  //       throw err;
-  //     } else {
-  //       throw new HttpException(
-  //         'Internal Server Error',
-  //         HttpStatus.INTERNAL_SERVER_ERROR,
-  //       );
-  //     }
-  //   }
-  // }
   @Post('/')
-  @UseInterceptors(FileInterceptor('image'))
   async createBoard(
     @Body() createBoardDto: CreateBoardDto,
-    @UploadedFile() image: Express.Multer.File,
   ): Promise<BoardType> {
     try {
-      // Get the file name
-      const imageName = uuid() + path.extname(image.originalname);
-
-      // Move the uploaded image file to the images folder
-      const imagePath = path.join(
-        __dirname,
-        '..',
-        '..',
-        'public',
-        'images',
-        imageName,
-      );
-      console.log('Image Path:', imagePath); // Add this line to check the image path
-      await fsPromises.rename(image.path, imagePath);
-
-      // Create the board with the image path
-      const createdBoard = await this.boardsService.createBoard({
-        ...createBoardDto,
-        imagePath: `/images/${imageName}`,
-      });
-
-      console.log('Created Board:', createdBoard); // Add this line to check the created board
+      const createdBoard = await this.boardsService.createBoard(createBoardDto);
+      console.log(createdBoard);
       return createdBoard;
     } catch (err) {
-      console.log('Error:', err); // Add this line to log the error
       if (err instanceof HttpException) {
         throw err;
       } else {
@@ -99,6 +58,49 @@ export class BoardsController {
       }
     }
   }
+
+  // @Post('/')
+  // @UseInterceptors(FileInterceptor('image'))
+  // async createBoard(
+  //   @Body() createBoardDto: CreateBoardDto,
+  //   @UploadedFile() image: Express.Multer.File,
+  // ): Promise<BoardType> {
+  //   try {
+  //     // Get the file name
+  //     const imageName = uuid() + path.extname(image.originalname);
+
+  //     // Move the uploaded image file to the images folder
+  //     const imagePath = path.join(
+  //       __dirname,
+  //       '..',
+  //       '..',
+  //       'public',
+  //       'images',
+  //       imageName,
+  //     );
+  //     console.log('Image Path:', imagePath); // Add this line to check the image path
+  //     await fsPromises.rename(image.path, imagePath);
+
+  //     // Create the board with the image path
+  //     const createdBoard = await this.boardsService.createBoard({
+  //       ...createBoardDto,
+  //       imagePath: `/images/${imageName}`,
+  //     });
+
+  //     console.log('Created Board:', createdBoard); // Add this line to check the created board
+  //     return createdBoard;
+  //   } catch (err) {
+  //     console.log('Error:', err); // Add this line to log the error
+  //     if (err instanceof HttpException) {
+  //       throw err;
+  //     } else {
+  //       throw new HttpException(
+  //         'Internal Server Error',
+  //         HttpStatus.INTERNAL_SERVER_ERROR,
+  //       );
+  //     }
+  //   }
+  // }
 
   @Get('/:id')
   async getBoardById(@Param('id') id: string): Promise<BoardType> {
@@ -144,5 +146,22 @@ export class BoardsController {
     @Body() updateBoardDto: UpdateBoardDto,
   ): Promise<BoardType> {
     return this.boardsService.updateBoard(id, updateBoardDto);
+  }
+
+  @Post('/upload')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './public/images', // 이미지를 저장할 디렉토리 경로
+        filename: (req, file, callback) => {
+          const uniqueName = uuid() + path.extname(file.originalname);
+          callback(null, uniqueName);
+        },
+      }),
+    }),
+  )
+  async uploadImage(@UploadedFile() image: Express.Multer.File) {
+    const imageUrl = `/images/${image.filename}`;
+    return { imageUrl };
   }
 }

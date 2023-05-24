@@ -30,7 +30,7 @@ export class BoardsService {
   }
 
   async createBoard(createBoardDto: CreateBoardDto): Promise<BoardType> {
-    const { title, description, imagePath } = createBoardDto;
+    const { title, description } = createBoardDto;
 
     const board = new Board();
     board.title = title;
