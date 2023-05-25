@@ -165,3 +165,4 @@ export class BoardsController {
     return { imageUrl };
   }
 }
+// 확인
