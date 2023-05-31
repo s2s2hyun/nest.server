@@ -24,6 +24,7 @@ export class BoardsService {
       title: board.title,
       description: board.description,
       status: board.status,
+      createdAt: board.createdAt,
     }));
 
     return Promise.resolve(result);
@@ -44,6 +45,7 @@ export class BoardsService {
       title: board.title,
       description: board.description,
       status: board.status,
+      createdAt: board.createdAt.toString(),
     };
 
     return boardType; // cast Board entity to BoardType interface

@@ -36,6 +36,7 @@ export class BoardsController {
       title: board.title,
       description: board.description,
       status: board.status,
+      createdAt: board.createdAt.toString(),
     }));
   }
 
@@ -114,6 +115,7 @@ export class BoardsController {
         title: board.title,
         description: board.description,
         status: board.status,
+        createdAt: board.createdAt.toString(),
       };
     } catch (err) {
       if (err instanceof HttpException) {
