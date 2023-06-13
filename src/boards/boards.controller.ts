@@ -36,6 +36,7 @@ export class BoardsController {
       title: board.title,
       description: board.description,
       status: board.status,
+      category: board.category,
       createdAt: board.createdAt.toString(),
     }));
   }
@@ -115,6 +116,7 @@ export class BoardsController {
         title: board.title,
         description: board.description,
         status: board.status,
+        category: board.category,
         createdAt: board.createdAt.toString(),
       };
     } catch (err) {

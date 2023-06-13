@@ -3,7 +3,8 @@ export interface BoardType {
   title: string;
   description: string;
   status: BoardStatus;
-  createdAt: Date | string; // 타입을 Date 또는 string으로 변경
+  createdAt: Date | string; // 타입을 Date 또는 string으로 변경\
+  category: string;
 }
 export enum BoardStatus {
   PUBLIC = 'PUBLIC',

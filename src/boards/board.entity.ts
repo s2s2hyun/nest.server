@@ -26,4 +26,7 @@ export class Board {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column() // 변경: nullable: true 제거
+  category: string;
 }

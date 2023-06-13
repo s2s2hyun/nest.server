@@ -25,6 +25,7 @@ export class BoardsService {
       description: board.description,
       status: board.status,
       createdAt: board.createdAt,
+      category: board.category,
     }));
 
     return Promise.resolve(result);
@@ -45,6 +46,7 @@ export class BoardsService {
       title: board.title,
       description: board.description,
       status: board.status,
+      category: board.category,
       createdAt: board.createdAt.toString(),
     };
 
