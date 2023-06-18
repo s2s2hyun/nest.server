@@ -12,10 +12,10 @@ export class Board {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ default: '기본값' })
+  @Column()
   title: string;
 
-  @Column({ default: '기본값' })
+  @Column()
   description: string;
 
   @Column({ default: BoardStatus.PUBLIC })
@@ -27,6 +27,6 @@ export class Board {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ default: '기본값' })
+  @Column({ default: 'SomeDefaultCategory' })
   category: string;
 }
