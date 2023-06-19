@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Board } from './boards/board.entity';
 import { AuthModule } from './auth/auth.module';
 import { User } from './auth/user.entity';
+import { Comment } from './boards/boardComment.entity';
 import { ProtectedController } from './auth/protected.controller';
 import { EmailModule } from './email/email.module';
 import { MulterModule } from '@nestjs/platform-express';
@@ -18,7 +19,7 @@ import { MulterModule } from '@nestjs/platform-express';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      entities: [Board, User],
+      entities: [Board, User, Comment],
       synchronize: true,
       logging: true, // enable logging
       // Add this line to use mysql2

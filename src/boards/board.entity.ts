@@ -4,8 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { BoardStatus } from './boards.model';
+import { Comment } from './boardComment.entity';
 
 @Entity('boards') // Specify the table name as 'boards'
 export class Board {
@@ -29,4 +31,7 @@ export class Board {
 
   @Column({ default: 'SomeDefaultCategory' })
   category: string;
+
+  @OneToMany(() => Comment, (comment) => comment.board)
+  comments: Comment[];
 }
