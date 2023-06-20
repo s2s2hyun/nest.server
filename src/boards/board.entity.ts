@@ -4,18 +4,20 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { BoardStatus } from './boards.model';
+import { Comment } from './boardComment.entity';
 
 @Entity('boards') // Specify the table name as 'boards'
 export class Board {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ default: '기본값' })
+  @Column()
   title: string;
 
-  @Column({ default: '기본값' })
+  @Column()
   description: string;
 
   @Column({ default: BoardStatus.PUBLIC })
@@ -27,6 +29,9 @@ export class Board {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ default: '기본값' })
+  @Column({ default: 'SomeDefaultCategory' })
   category: string;
+
+  @OneToMany(() => Comment, (comment) => comment.board)
+  comments: Comment[];
 }

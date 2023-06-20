@@ -32,11 +32,12 @@ export class BoardsService {
   }
 
   async createBoard(createBoardDto: CreateBoardDto): Promise<BoardType> {
-    const { title, description } = createBoardDto;
+    const { title, description, category } = createBoardDto;
 
     const board = new Board();
     board.title = title;
     board.description = description;
+    board.category = category;
     board.id = uuid(); // generate a unique string ID
     board.status = BoardStatus.PUBLIC; // set the status property
     await this.boardRepository.save(board);
