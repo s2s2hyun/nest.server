@@ -35,4 +35,13 @@ export class CommentsService {
 
     return this.commentRepository.save(comment);
   }
+
+  async findAllByBoardId(boardId: string): Promise<Comment[]> {
+    return this.commentRepository
+      .createQueryBuilder('comment')
+      .innerJoinAndSelect('comment.board', 'board', 'board.id = :id', {
+        id: boardId,
+      })
+      .getMany();
+  }
 }
