@@ -32,6 +32,8 @@ export class CommentsService {
     comment.nickname = createCommentDto.nickname;
     comment.createdAt = new Date();
     comment.board = board;
+    const picNumber = Math.floor(Math.random() * 17) + 1;
+    comment.pic = `pic${picNumber}`;
 
     return this.commentRepository.save(comment);
   }

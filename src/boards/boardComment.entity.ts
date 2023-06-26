@@ -17,6 +17,10 @@ export class Comment {
 
   @Column()
   createdAt: Date;
+
+  @Column()
+  pic: string;
+
   // 댓글 확인 필요
   @ManyToOne(() => Board, (board) => board.comments)
   board: Board;
