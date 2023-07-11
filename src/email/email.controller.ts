@@ -6,15 +6,16 @@ export class EmailController {
   constructor(private readonly emailService: EmailService) {}
 
   @Post('send')
-  async sendMail(@Body() body) {
-    const { subject, text } = body;
-    const from = body.from; // 사용자가 입력한 보내는 사람 이메일 주소
+  async sendMail(
+    @Body() body: { email: string; nickname: string; message: string },
+  ) {
+    const { email, nickname, message } = body;
 
     return this.emailService.sendMail({
       to: 's2s2hyun0703@gmail.com', // 이메일 받는 사람의 주소 (고정)
-      subject, // 이메일의 제목
-      text, // 이메일의 내용
-      from, // 사용자가 입력한 보내는 사람 이메일 주소
+      from: email, // 사용자가 입력한 보내는 사람 이메일 주소
+      subject: nickname,
+      text: `이메일: ${email}\n닉네임: ${nickname}\n내용: ${message}`, // 이메일의 내용
     });
   }
 }

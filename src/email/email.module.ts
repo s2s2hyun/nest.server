@@ -10,7 +10,7 @@ import { EmailController } from './email.controller';
         service: 'Gmail',
         auth: {
           user: 's2s2hyun0703@gmail.com',
-          pass: 'qiwwttetnulowubv',
+          pass: process.env.GMAIL_PASSWORD,
         },
       },
       defaults: {

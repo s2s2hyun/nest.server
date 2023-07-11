@@ -14,7 +14,7 @@ async function bootstrap() {
 
   // CORS 설정을 커스텀 수정
   app.enableCors({
-    origin: 'http://localhost:3000', // 클라이언트 애플리케이션의 도메인
+    origin: 'http://localhost:4000', // 클라이언트 애플리케이션의 도메인
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // 허용할 HTTP 메소드들
     allowedHeaders: ['Content-Type', 'Authorization'], // 허용할 헤더들
     credentials: true,

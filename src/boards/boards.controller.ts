@@ -31,9 +31,7 @@ export class BoardsController {
   @Get('/')
   async getAllBoard(): Promise<BoardType[]> {
     const boards = await this.boardsService.getAllBoards();
-    boards.forEach((board) =>
-      console.log(board.id, '씨ㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣ발'),
-    ); // Log the id of each board
+    boards.forEach((board) => console.log(board.id)); // Log the id of each board
     return boards.map((board) => ({
       id: board.id,
       title: board.title,
