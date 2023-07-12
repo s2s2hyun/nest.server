@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  RelationId,
+} from 'typeorm';
 import { Board } from './board.entity';
 
 @Entity('comments')
@@ -18,6 +25,10 @@ export class Comment {
   @Column()
   createdAt: Date;
 
+  @Column()
+  boardId: string;
+
   @ManyToOne(() => Board, (board) => board.comments)
+  @JoinColumn({ name: 'boardId' })
   board: Board;
 }

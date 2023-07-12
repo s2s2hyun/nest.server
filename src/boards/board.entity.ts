@@ -29,6 +29,9 @@ export class Board {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Column()
+  writer: string;
+
   @Column({ default: 'SomeDefaultCategory' })
   category: string;
 

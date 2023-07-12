@@ -23,15 +23,22 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 import { diskStorage } from 'multer';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Comment } from './boardComment.entity';
 
 @Controller('boards')
 export class BoardsController {
-  constructor(private boardsService: BoardsService) {}
+  constructor(
+    private boardsService: BoardsService,
+    @InjectRepository(Comment)
+    private commentRepository: Repository<Comment>,
+  ) {}
 
   @Get('/')
   async getAllBoard(): Promise<BoardType[]> {
     const boards = await this.boardsService.getAllBoards();
-    boards.forEach((board) => console.log(board.id)); // Log the id of each board
+    // boards.forEach((board) => console.log(board.id)); // Log the id of each board
     return boards.map((board) => ({
       id: board.id,
       title: board.title,
@@ -39,6 +46,8 @@ export class BoardsController {
       status: board.status,
       category: board.category,
       createdAt: board.createdAt.toString(),
+      writer: board.writer,
+      commentCount: board.commentCount,
     }));
   }
 
@@ -62,49 +71,6 @@ export class BoardsController {
     }
   }
 
-  // @Post('/')
-  // @UseInterceptors(FileInterceptor('image'))
-  // async createBoard(
-  //   @Body() createBoardDto: CreateBoardDto,
-  //   @UploadedFile() image: Express.Multer.File,
-  // ): Promise<BoardType> {
-  //   try {
-  //     // Get the file name
-  //     const imageName = uuid() + path.extname(image.originalname);
-
-  //     // Move the uploaded image file to the images folder
-  //     const imagePath = path.join(
-  //       __dirname,
-  //       '..',
-  //       '..',
-  //       'public',
-  //       'images',
-  //       imageName,
-  //     );
-  //     console.log('Image Path:', imagePath); // Add this line to check the image path
-  //     await fsPromises.rename(image.path, imagePath);
-
-  //     // Create the board with the image path
-  //     const createdBoard = await this.boardsService.createBoard({
-  //       ...createBoardDto,
-  //       imagePath: `/images/${imageName}`,
-  //     });
-
-  //     console.log('Created Board:', createdBoard); // Add this line to check the created board
-  //     return createdBoard;
-  //   } catch (err) {
-  //     console.log('Error:', err); // Add this line to log the error
-  //     if (err instanceof HttpException) {
-  //       throw err;
-  //     } else {
-  //       throw new HttpException(
-  //         'Internal Server Error',
-  //         HttpStatus.INTERNAL_SERVER_ERROR,
-  //       );
-  //     }
-  //   }
-  // }
-
   @Get('/:id')
   async getBoardById(@Param('id') id: string): Promise<BoardType> {
     try {
@@ -112,6 +78,12 @@ export class BoardsController {
       if (!board) {
         throw new NotFoundException({ message: 'Board not found', id });
       }
+
+      const commentCount = await this.commentRepository
+        .createQueryBuilder('comment')
+        .where('comment.boardId = :id', { id })
+        .getCount();
+
       return {
         id: board.id.toString(),
         title: board.title,
@@ -119,6 +91,8 @@ export class BoardsController {
         status: board.status,
         category: board.category,
         createdAt: board.createdAt.toString(),
+        writer: board.writer,
+        commentCount,
       };
     } catch (err) {
       if (err instanceof HttpException) {

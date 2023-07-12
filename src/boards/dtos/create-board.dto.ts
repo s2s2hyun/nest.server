@@ -8,6 +8,9 @@ export class CreateBoardDto {
   description: string;
   imagePath: string;
 
+  @IsString()
+  writer: string;
+
   @IsString() // 변경: @IsOptional 제거
   category: string; // 변경: 필수 필드이므로 ? 제거
 }
